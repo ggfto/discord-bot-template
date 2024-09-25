@@ -31,6 +31,11 @@ First, let's define the bot's author and name. To do so, we need to edit the `pa
 }
 ```
 
+The Discord token is stored in the `.env` file. This way, when in production, we can use environment variables to set it using the `-e` within `docker run`.
+```env
+DISCORD_TOKEN=<YOUR_DISCORD_TOKEN>
+```
+
 ## Commands and Events
 
 We should add commands to the `src/commands` folder, while events to the `src/events` folder. Doing so we can keep the code clean and organized.
