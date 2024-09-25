@@ -1,0 +1,14 @@
+{
+    "name": "discord-bot-template",
+    "version": "1.0.0",
+    "description": "Your awesome bot.",
+    "main": "src/bot.js",
+    "scripts": {
+        "start": "node src/bot.js"
+    },
+    "dependencies": {
+        "discord.js": "^14.16.2",
+        "dotenv": "^16.4.5",
+        "discord-bot-template": "file:"
+    }
+}

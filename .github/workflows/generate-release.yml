@@ -1,0 +1,162 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+  packages: write
+  actions: write
+
+jobs:
+  build_and_release:
+    runs-on: ubuntu-latest
+    outputs:
+      release_body: ${{ steps.prepare_release_body.outputs.body }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Update package.json version
+        run: |
+          npm version ${{ github.ref_name }} --no-git-tag-version
+
+      - name: Install dependencies
+        working-directory: ./src
+        run: |
+          npm install
+
+      - name: Set up QEMU
+        id: qemu
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        id: login-ghcr
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+
+      - name: Build and push
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+
+      - name: Get commit messages, version, and repository description
+        id: get_project_information
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          CURRENT_TAG="${GITHUB_REF#refs/tags/}"
+
+          if [ -n "$LAST_TAG" ]; then
+            COMMITS=$(git log $LAST_TAG..$GITHUB_SHA --oneline --pretty=format:"%h %s")
+          else
+            echo "Nenhuma tag anterior encontrada. Coletando todos os commits até a tag atual."
+            COMMITS=$(git log --oneline --pretty=format:"%h %s")
+          fi
+
+          if [ -z "$COMMITS" ]; then
+            echo "Nenhuma mudança significativa desde a última release." > ./release_body.txt
+          else
+            echo "$COMMITS" > ./release_body.txt
+          fi
+
+      - name: Prepare release body
+        id: prepare_release_body
+        run: |
+          if [ -f release_body.txt ]; then
+              RELEASE_NOTES=$(head -n 1900 release_body.txt)
+              echo "body=$RELEASE_NOTES" >> $GITHUB_OUTPUT
+          else
+              echo "Arquivo release_body.txt não encontrado!"
+              echo "body=Nenhuma nota de release disponível." >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate Release
+        uses: comnoco/create-release-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        id: release
+        with:
+          tag_name: "${{ github.ref_name }}"
+          release_name: "${{ steps.get_project_information.outputs.version }}"
+          body_path: release_body.txt
+          draft: false
+          prerelease: false
+
+  post_to_discord:
+    needs: build_and_release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post to Discord (with embed)
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.GT_OB_WEBHOOK }}
+          RELEASE_URL: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}
+          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_AUTHOR: ${{ github.actor }}
+          RELEASE_BODY: ${{ needs.build_and_release.outputs.release_body }}
+          LOGO_URL: ${{ secrets.LOGO_GT_URL }}
+        run: |
+          if [ -z "$DISCORD_WEBHOOK_URL" ]; then
+            echo "Webhook URL não definido. Pulando o envio do webhook."
+            exit 0
+          fi
+
+          REPO_DESCRIPTION=$(curl -s https://api.github.com/repos/${{ github.repository }} | jq -r .description)
+
+          AUTHOR='{
+              "name": "Github - Updates",
+              "icon_url": "'"${LOGO_URL:-}"'"
+          }'
+          FOOTER='{
+              "text": "Realizado por: '"${RELEASE_AUTHOR}"'",
+              "icon_url": "'"${LOGO_URL:-}"'"
+          }'
+
+          EMBED_DATA='{
+              "embeds": [{
+              "author": '"${AUTHOR}"',
+              "title": "[${{ github.event.repository.name }}] Nova versão disponível: '"${RELEASE_TAG}"'",
+              "url": "'"${RELEASE_URL}"'",
+              "description": "'"${REPO_DESCRIPTION}"'",
+              "fields": [{
+                  "name": "O que há de novo?",
+                  "value": "'"${RELEASE_BODY}"'"
+              },
+              {
+                  "name": "Veja todas as mudanças",
+                  "value": "[Veja todas as mudanças aqui](https://github.com/${{ github.repository }}/commits/${{ github.ref_name }})"
+              }],
+              "color": 4243543,
+              "footer": '"${FOOTER}"',
+              "timestamp": "'"$(date --utc +%Y-%m-%dT%H:%M:%SZ)"'"
+              }]
+          }'
+
+          curl -H "Content-Type: application/json" \
+              -d "$EMBED_DATA" \
+              $DISCORD_WEBHOOK_URL
