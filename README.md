@@ -1,14 +1,11 @@
 # Discord Bot Template
 
 ![Build Status](https://github.com/ggfto/discord-bot-template/actions/workflows/generate-release.yml/badge.svg)
-![Coverage Status](https://codecov.io/gh/ggfto/discord-bot-template/branch/main/graph/badge.svg)
 ![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
-![Dependencies](https://img.shields.io/david/ggfto/discord-bot-template.svg)
 ![Issues](https://img.shields.io/github/issues/ggfto/discord-bot-template.svg)
 ![Pull Requests](https://img.shields.io/github/issues-pr/ggfto/discord-bot-template.svg)
 ![Last Commit](https://img.shields.io/github/last-commit/ggfto/discord-bot-template.svg)
-![Docker Image Size](https://img.shields.io/docker/image-size/ggfto/discord-bot-template.svg)
-[![Creative Commons License](https://licensebuttons.net/l/by/1.0/80x15.png)](https://creativecommons.org/licenses/by/4.0/)
+[![Creative Commons License](https://licensebuttons.net/l/by/1.0/80x15.png)](https://creativecommons.org/licenses/by/1.0/)
 
 This is a template repo for creating discord bots using NodeJS and Discord.js.
 
