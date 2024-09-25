@@ -1,7 +1,7 @@
 # Discord Bot Template
 
 ![Build Status](https://github.com/ggfto/discord-bot-template/actions/workflows/generate-release.yml/badge.svg)
-![GitHub package.json Version](https://img.shields.io/github/package-json/v/ggfto/discord-bot-template?color=blue)
+![GitHub package.json version](https://img.shields.io/github/package-json/v/ggfto/discord-bot-template?color=blue)
 ![Issues](https://img.shields.io/github/issues/ggfto/discord-bot-template.svg)
 ![Pull Requests](https://img.shields.io/github/issues-pr/ggfto/discord-bot-template.svg)
 ![Last Commit](https://img.shields.io/github/last-commit/ggfto/discord-bot-template.svg?color=blue)
@@ -9,6 +9,14 @@
 [![Creative Commons License](https://licensebuttons.net/l/by/1.0/80x15.png)](https://creativecommons.org/licenses/by/1.0/)
 
 This is a template repo for creating discord bots using NodeJS and Discord.js.
+
+## Features
+
+- Easily configurable bot setup
+- Support for commands and events
+- Docker support for containerized deployment
+- Automated release process with GitHub Actions
+- Dependency management with Dependabot
 
 ## Usage
 
@@ -38,12 +46,27 @@ DISCORD_TOKEN=<YOUR_DISCORD_TOKEN>
 
 ## Commands and Events
 
-We should add commands to the `src/commands` folder, while events to the `src/events` folder. Doing so we can keep the code clean and organized.
+Add your commands to the `src/commands` folder and events to the `src/events` folder to maintain a clean code structure. Here are some example commands you might implement:
+
+- **ping**: Responds with "Pong!".
+- **info**: Provides information about the bot.
 
 ## Building and Docker
 
-This repo also contains all the files necessary to build and run the bot in Docker, and also the automated release process. We just need to configure the `generate-release.yml` needed variables and should be good to go. To generate the release, we just need to execute the `generate_release` script. It will create a new tag and push to github. Github will publish the release, build the docker image and push it to Github Container Registry.
+This repository contains all the files necessary to build and run the bot in Docker. Configure the `generate-release.yml` with the needed variables. To generate the release, run the `generate_release` script. This will create a new tag and push to GitHub, triggering the automated release process.
+
+To run the bot with Docker:
+
+```bash
+docker run -e DISCORD_TOKEN=<YOUR_DISCORD_TOKEN> your-docker-image
+```
+
+## Contribution
+Feel free to contribute! Open issues or submit pull requests for any improvements or features you'd like to add.
+
+## License
+This project is licensed under the [Creative Commons Attribution 1.0 License](https://creativecommons.org/licenses/by/1.0/).
 
 ## Dependabot
 
-This repo also contains a `dependabot.yml` file that will automatically check for updates of the dependencies and create pull requests if needed.
+The repository includes a `dependabot.yml` file that automatically checks for dependency updates and creates pull requests as needed.
