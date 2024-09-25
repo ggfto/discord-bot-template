@@ -1,6 +1,6 @@
 {
     "name": "discord-bot-template",
-    "version": "1.0.0",
+    "version": "0.0.1",
     "description": "Your awesome bot.",
     "main": "src/bot.js",
     "scripts": {
