@@ -7,8 +7,8 @@
         "start": "node src/bot.js"
     },
     "dependencies": {
+        "discord-bot-template": "file:",
         "discord.js": "^14.16.2",
-        "dotenv": "^16.4.5",
-        "discord-bot-template": "file:"
+        "dotenv": "^16.4.5"
     }
 }
