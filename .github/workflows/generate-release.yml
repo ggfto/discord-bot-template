@@ -24,14 +24,37 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Update package.json version
+      - name: Update package version, generate and push README
         run: |
           npm version ${{ github.ref_name }} --no-git-tag-version
+          WORKFLOW_FILE=$(basename $(find .github/workflows -name "*.yml" | grep "${{ github.workflow }}"))
+          sed -e "s/{{user}}/${{ github.actor }}/g" \
+            -e "s/{{repo}}/${{ github.ref_name }}/g" \
+            -e "s/{{workflow_file}}/$WORKFLOW_FILE/g" \
+            -e "s/{{version}}/${{ github.ref_name }}/g" \
+            README.template.md > README.md
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "Feat: Atualizado README.md"
+          git push origin ${{ github.ref_name }}  # Adicionado para usar a mesma branch/tag que acionou o workflow
 
       - name: Install dependencies
         working-directory: ./src
         run: |
-          npm install
+          if [ -d "./src" ]; then
+              npm install
+          else
+              echo "Pasta ./src não encontrada. Pulando instalação de dependências."
+          fi
+
+      - name: Cache Node.js modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
       - name: Set up QEMU
         id: qemu
@@ -114,12 +137,12 @@ jobs:
     steps:
       - name: Post to Discord (with embed)
         env:
-          DISCORD_WEBHOOK_URL: ${{ secrets.GT_OB_WEBHOOK }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK }}
           RELEASE_URL: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}
           RELEASE_TAG: ${{ github.ref_name }}
           RELEASE_AUTHOR: ${{ github.actor }}
           RELEASE_BODY: ${{ needs.build_and_release.outputs.release_body }}
-          LOGO_URL: ${{ secrets.LOGO_GT_URL }}
+          LOGO_URL: ${{ secrets.LOGO_URL }}
         run: |
           if [ -z "$DISCORD_WEBHOOK_URL" ]; then
             echo "Webhook URL não definido. Pulando o envio do webhook."
