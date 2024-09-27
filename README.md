@@ -1,11 +1,11 @@
 # Discord Bot Template
 
-![Build Status](https://github.com/ggfto/v1.0.2/actions/workflows/generate-release.yml/badge.svg)
-![GitHub package.json version](https://img.shields.io/github/package-json/v/ggfto/v1.0.2?color=blue)
-![Issues](https://img.shields.io/github/issues/ggfto/v1.0.2.svg)
-![Pull Requests](https://img.shields.io/github/issues-pr/ggfto/v1.0.2.svg)
-![Last Commit](https://img.shields.io/github/last-commit/ggfto/v1.0.2.svg?color=blue)
-![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/ggfto/v1.0.2)
+![Build Status](https://github.com/ggfto/discord-bot-template/actions/workflows/generate-release.yml/badge.svg)
+![GitHub package.json version](https://img.shields.io/github/package-json/v/ggfto/discord-bot-template?color=blue)
+![Issues](https://img.shields.io/github/issues/ggfto/discord-bot-template.svg)
+![Pull Requests](https://img.shields.io/github/issues-pr/ggfto/discord-bot-template.svg)
+![Last Commit](https://img.shields.io/github/last-commit/ggfto/discord-bot-template.svg?color=blue)
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/ggfto/discord-bot-template)
 [![Creative Commons License](https://licensebuttons.net/l/by/1.0/80x15.png)](https://creativecommons.org/licenses/by/1.0/)
 
 This is a template repo for creating discord bots using NodeJS and Discord.js.
