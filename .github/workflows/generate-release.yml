@@ -29,7 +29,7 @@ jobs:
           npm version ${{ github.ref_name }} --no-git-tag-version
           WORKFLOW_FILE="generate-release.yml"
           sed -e "s/{{user}}/${{ github.actor }}/g" \
-            -e "s/{{repo}}/${{ github.ref_name }}/g" \
+            -e "s/{{repo}}/${{ github.repository }}/g" \
             -e "s/{{workflow_file}}/$WORKFLOW_FILE/g" \
             -e "s/{{version}}/${{ github.ref_name }}/g" \
             README.template.md > README.md
