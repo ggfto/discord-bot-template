@@ -46,10 +46,10 @@ DISCORD_TOKEN=<YOUR_DISCORD_TOKEN>
 
 ## Commands and Events
 
-Add your commands to the `src/commands` folder and events to the `src/events` folder to maintain a clean code structure. Here are some example commands you might implement:
+Add your commands to the `src/commands` folder and events to the `src/events` folder to maintain a clean code structure. Here are some example commands the bot already has:
 
 - **ping**: Responds with "Pong!".
-- **info**: Provides information about the bot.
+- **say**: Sends a message to a specified channel.
 
 ## Building and Docker
 
