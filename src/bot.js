@@ -14,8 +14,11 @@ const client = new Client({
     ]
 });
 
+const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN);
+
 client.commands = new Collection();
 
+// Carregar comandos
 const commandFiles = fs.readdirSync('./src/commands').filter(file => file.endsWith('.js'));
 const commands = [];
 
@@ -25,8 +28,65 @@ for (const file of commandFiles) {
     commands.push(command.data.toJSON());
 }
 
-const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN);
+// Função para remover comandos
+async function clearCommands() {
+    try {
+        console.log('Removendo todos os comandos registrados...');
+        // Remover comandos da guilda
+        const guildCommands = await rest.get(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID));
+        for (const command of guildCommands) {
+            await rest.delete(Routes.applicationGuildCommand(CLIENT_ID, GUILD_ID, command.id));
+            console.log(`Comando da guilda removido: ${command.name}`);
+        }
 
+        // Remover comandos globais
+        const globalCommands = await rest.get(Routes.applicationCommands(CLIENT_ID));
+        for (const command of globalCommands) {
+            await rest.delete(Routes.applicationCommand(CLIENT_ID, command.id));
+            console.log(`Comando global removido: ${command.name}`);
+        }
+
+        console.log('Todos os comandos foram removidos com sucesso!');
+    } catch (error) {
+        handleError('Erro ao remover comandos', error);
+    }
+}
+
+// Função para registrar comandos na guilda ou globalmente
+async function registerCommands() {
+    try {
+        console.log('Registrando comandos...');
+        const targetRoute = DEBUG_MODE
+            ? Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID)
+            : Routes.applicationCommands(CLIENT_ID);
+
+        await rest.put(targetRoute, { body: commands });
+        console.log(DEBUG_MODE ? 'Comandos registrados apenas na guilda para debug.' : 'Comandos registrados globalmente.');
+    } catch (error) {
+        handleError('Erro ao registrar comandos', error);
+    }
+}
+
+// Função centralizada para sincronizar os comandos
+async function syncCommands() {
+    try {
+        // Passo 1: Remover comandos antigos
+        await clearCommands();
+
+        // Passo 2: Registrar novos comandos
+        await registerCommands();
+    } catch (error) {
+        handleError('Erro ao sincronizar comandos', error);
+    }
+}
+
+// Função centralizada para tratamento de erros
+function handleError(message, error) {
+    console.error(message, error);
+    // Caso necessário, podemos expandir para logar em arquivos, enviar alertas por email, Slack, etc.
+}
+
+// Carregar eventos
 const eventFiles = fs.readdirSync('./src/events').filter(file => file.endsWith('.js'));
 for (const file of eventFiles) {
     const event = require(`./events/${file}`);
@@ -37,45 +97,10 @@ for (const file of eventFiles) {
     }
 }
 
-client.on('interactionCreate', async (interaction) => {
-    if (!interaction.isCommand()) return;
-
-    const command = client.commands.get(interaction.commandName);
-    if (!command) return;
-
-    try {
-        await command.execute(interaction);
-    } catch (error) {
-        console.error('Erro ao executar o comando:', error);
-        await interaction.reply({ content: 'Houve um erro ao executar esse comando.', ephemeral: true });
-    }
-});
-
-async function syncCommands() {
-    try {
-        console.log('Sincronizando os comandos de slash...');
-
-        const registeredCommands = await rest.get(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID));
-        const definedCommandNames = Array.from(client.commands.keys());
-        const commandsToRemove = registeredCommands.filter(cmd => !definedCommandNames.includes(cmd.name));
-
-        for (const command of commandsToRemove) {
-            await rest.delete(Routes.applicationGuildCommand(CLIENT_ID, GUILD_ID, command.id));
-            console.log(`Comando removido: ${command.name}`);
-        }
-
-        if (DEBUG_MODE) await rest.put(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID), { body: commands });
-        await rest.put(Routes.applicationCommands(clientId), { body: commands });
-        console.log('Comandos sincronizados com sucesso!');
-
-    } catch (error) {
-        console.error('Erro ao sincronizar comandos de slash:', error);
-    }
-}
-
+// Inicializar o bot
 client.once('ready', () => {
-    syncCommands();
-    console.log(`Logged in as ${client.user.tag}!`);
+    syncCommands();  // Sincroniza comandos ao inicializar
+    console.log(`Bot iniciado como ${client.user.tag}`);
 });
 
 client.login(DISCORD_TOKEN);
