@@ -1,6 +1,6 @@
 const { EmbedColors, createEmbed } = require('../utils/embedUtils');
 
-async function createEmbedInteraction(description, color, fields = []) {
+async function createEmbedInteraction({description, color, fields}) {
     return await createEmbed({
         title: 'Interação',
         description,
@@ -29,7 +29,7 @@ module.exports = {
             }
         } catch (error) {
             console.error(`Erro ao executar o comando ${interaction.commandName}:`, error);
-            const embed = await createEmbedInteraction('Ocorreu um erro ao executar o comando.', EmbedColors.DANGER);
+            const embed = await createEmbedInteraction({description: 'Ocorreu um erro ao executar o comando.', color: EmbedColors.DANGER, fields: [{ name: 'Erro', value: error.message }] });
             try {
                 await interaction.reply({ embeds: [embed], ephemeral: true });
             } catch (error) {

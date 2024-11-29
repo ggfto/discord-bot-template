@@ -1,11 +1,11 @@
 # Discord Bot Template
 
-![Build Status](https://github.com/{{user}}/{{repo}}/actions/workflows/generate-release.yml/badge.svg)
-![GitHub package.json version](https://img.shields.io/github/package-json/v/{{user}}/{{repo}}?color=blue)
-![Issues](https://img.shields.io/github/issues/{{user}}/{{repo}}.svg)
-![Pull Requests](https://img.shields.io/github/issues-pr/{{user}}/{{repo}}.svg)
-![Last Commit](https://img.shields.io/github/last-commit/{{user}}/{{repo}}.svg?color=blue)
-![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/{{user}}/{{repo}})
+![Build Status](https://github.com/{{repository}}/actions/workflows/generate-release.yml/badge.svg)
+![GitHub package.json version](https://img.shields.io/github/package-json/v/{{repository}}?color=blue)
+![Issues](https://img.shields.io/github/issues/{{repository}}.svg)
+![Pull Requests](https://img.shields.io/github/issues-pr/{{repository}}.svg)
+![Last Commit](https://img.shields.io/github/last-commit/{{repository}}.svg?color=blue)
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/{{repository}})
 [![Creative Commons License](https://licensebuttons.net/l/by/1.0/80x15.png)](https://creativecommons.org/licenses/by/1.0/)
 
 This is a template repo for creating discord bots using NodeJS and Discord.js.
@@ -49,6 +49,7 @@ DISCORD_TOKEN=<YOUR_DISCORD_TOKEN>
 Add your commands to the `src/commands` folder and events to the `src/events` folder to maintain a clean code structure. Here are some example commands the bot already has:
 
 - **ping**: Responds with "Pong!".
+- **perm**: Manages command permissions.
 - **say**: Sends a message to a specified channel.
 
 ## Building and Docker
@@ -60,6 +61,8 @@ To run the bot with Docker:
 ```bash
 docker run -e DISCORD_TOKEN=<YOUR_DISCORD_TOKEN> your-docker-image
 ```
+
+You can also use the `docker-compose.yml` file.
 
 ## Contribution
 Feel free to contribute! Open issues or submit pull requests for any improvements or features you'd like to add.

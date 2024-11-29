@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const { EmbedColors, createEmbed } = require('../utils/embedUtils');
-const { ActionType } = require('../utils/constants');
+const { PermActionType } = require('../utils/constants');
 const CommandRoles = require('../model/commandRoleModel');
 const hasPermission = require('../utils/permissionUtils');
 
@@ -8,31 +8,31 @@ async function getPermissionsDescription(commandName) {
     const roles = await CommandRoles.findAll({ where: { commandName } });
     return roles.length > 0
         ? roles.map(role => `• <@&${role.roleId}>`).join('\n')
-        : 'Nenhuma permissão configurada.';
+        : 'Nenhum cargo permitido.';
 }
 
-async function createPermissionEmbed(action, commandName, roleId = null, details = '', color) {
-    const permissionsDescription = await getPermissionsDescription(commandName);
 
+function getJsonObject(name, value, inline = false) {
+    return {name, value, inline};
+}
+
+async function createPermissionEmbed({action, commandName, role, message, color}) {
+    const permissionsDescription = await getPermissionsDescription(commandName);
     const fields = [];
 
     if (commandName) {
-        fields.push(
-            { name: 'Comando', value: `\`${commandName}\``, inline: true },
-        );
-        if (roleId) {
-            fields.push(
-                { name: 'Cargo', value: `<@&${roleId}>`, inline: true },
-            );
+        fields.push(getJsonObject('Comando', `\`${commandName}\``, true));
+        if (role) {
+            fields.push(getJsonObject('Cargo', `<@&${role}>`, true));
         }
     }
 
-    if (action !== ActionType.LIST) {
-        fields.push({ name: 'Detalhes', value: details });
+    if (action !== PermActionType.LIST) {
+        fields.push(getJsonObject('Detalhes', message));
     }
 
-    if (action !== ActionType.ERROR) {
-        fields.push({ name: 'Cargos Permitidos', value: permissionsDescription });
+    if (action !== PermActionType.ERROR) {
+        fields.push(getJsonObject('Cargos Permitidos', permissionsDescription));
     } else {
         color = EmbedColors.DANGER;
     }
@@ -46,29 +46,32 @@ async function createPermissionEmbed(action, commandName, roleId = null, details
 }
 
 async function handleAddPermission(commandName, role, guildId) {
+    const action = PermActionType.ADD;
     const existingRole = await CommandRoles.findOne({ where: { commandName, roleId: role.id } });
 
     if (existingRole) {
-        return createPermissionEmbed(ActionType.ADD, commandName, role.id, 'Cargo ja possui permissão para o comando.', EmbedColors.INFO);
+        return createPermissionEmbed({action, commandName, role: role.id, message: 'Cargo ja possui permissão para o comando.', color: EmbedColors.INFO});
     }
 
     await CommandRoles.create({ commandName, roleId: role.id, guildId });
-    return createPermissionEmbed(ActionType.ADD, commandName, role.id, 'Sucesso na operação.', EmbedColors.SUCCESS);
+    return createPermissionEmbed({action, commandName, role: role.id, message: 'Sucesso na operação.', color: EmbedColors.SUCCESS});
 }
 
 async function handleRemovePermission(commandName, role) {
+    const action = PermActionType.REMOVE;
     const existingRole = await CommandRoles.findOne({ where: { commandName, roleId: role.id } });
 
     if (!existingRole) {
-        return createPermissionEmbed(ActionType.REMOVE, commandName, role.id, 'Cargo não possui permissão para o comando.', EmbedColors.INFO);
+        return createPermissionEmbed({action, commandName, role: role.id, message: 'Cargo não possui permissão para o comando.', color: EmbedColors.INFO});
     }
 
     await existingRole.destroy();
-    return createPermissionEmbed(ActionType.REMOVE, commandName, role.id, 'Permissão removida com sucesso.', EmbedColors.SUCCESS);
+    return createPermissionEmbed({action, commandName, role: role.id, message: 'Permissão removida com sucesso.', color: EmbedColors.SUCCESS});
 }
 
 async function handleListPermissions(commandName) {
-    return createPermissionEmbed(ActionType.LIST, null, null, '', EmbedColors.INFO);
+    const action = PermActionType.LIST;
+    return createPermissionEmbed({action, commandName, color: EmbedColors.INFO});
 }
 
 module.exports = {
@@ -112,7 +115,7 @@ module.exports = {
         await interaction.deferReply({ ephemeral: true });
 
         if (!await hasPermission(interaction, 'perm')) {
-            const embed = await createPermissionEmbed(ActionType.ERROR, null, null, 'Você não tem permissão para usar este comando.');
+            const embed = await createPermissionEmbed({action: PermActionType.ERROR, message: 'Você não tem permissão para usar este comando.'});
             return interaction.editReply({ embeds: [embed] });
         }
 
@@ -131,7 +134,7 @@ module.exports = {
             return interaction.editReply({ embeds: [embed] });
         } catch (error) {
             console.error(`Erro ao processar o subcomando /perm ${subcommand}:`, error);
-            const embed = await createPermissionEmbed(ActionType.ERROR, null, error.message, 'Ocorreu um erro ao processar o comando.');
+            const embed = await createPermissionEmbed({action: PermActionType.ERROR, commandName, message: error.message});
             return interaction.editReply({ embeds: [embed] });
         }
     },
