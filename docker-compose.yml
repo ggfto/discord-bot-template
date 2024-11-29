@@ -1,0 +1,33 @@
+services:
+  bot:
+    image: ghcr.io/ggfto/discord-bot-template
+    container_name: discord-bot-template
+    environment:
+      - DISCORD_TOKEN=${DISCORD_TOKEN}
+      - CLIENT_ID=${CLIENT_ID}
+      - GUILD_ID=${GUILD_ID}
+      - SUPPORTER_CHECK_PERIOD=${SUPPORTER_CHECK_PERIOD}
+      - DEBUG_MODE=${DEBUG_MODE}
+      - DB_DIALECT=${DB_DIALECT}
+      - DB_HOST=db
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  db:
+    image: mariadb:10.5
+    container_name: mariadb_db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - ${DB_DATA_LOCATION}:/var/lib/mysql
+    restart: unless-stopped

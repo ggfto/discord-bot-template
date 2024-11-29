@@ -46,10 +46,11 @@ DISCORD_TOKEN=<YOUR_DISCORD_TOKEN>
 
 ## Commands and Events
 
-Add your commands to the `src/commands` folder and events to the `src/events` folder to maintain a clean code structure. Here are some example commands you might implement:
+Add your commands to the `src/commands` folder and events to the `src/events` folder to maintain a clean code structure. Here are some example commands the bot already has:
 
 - **ping**: Responds with "Pong!".
-- **info**: Provides information about the bot.
+- **perm**: Manages command permissions.
+- **say**: Sends a message to a specified channel.
 
 ## Building and Docker
 
@@ -60,6 +61,8 @@ To run the bot with Docker:
 ```bash
 docker run -e DISCORD_TOKEN=<YOUR_DISCORD_TOKEN> your-docker-image
 ```
+
+You can also use the `docker-compose.yml` file.
 
 ## Contribution
 Feel free to contribute! Open issues or submit pull requests for any improvements or features you'd like to add.
