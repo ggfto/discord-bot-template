@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { EmbedColors, createEmbed } = require('../utils/embedUtils');
-const hasPermission = require('../utils/permissionUtils');
+const { EmbedColors, createEmbed } = require('../../utils/embedUtils');
+const hasPermission = require('../../utils/permissionUtils');
 
 async function createSayEmbed({description, color, fields}) {
     return createEmbed({

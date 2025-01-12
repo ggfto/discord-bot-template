@@ -1,6 +1,6 @@
 services:
   bot:
-    image: {{lowercase_repo}}
+    image: {{lowercase_repo}}:latest
     container_name: {{repository}}
     environment:
       - DISCORD_TOKEN=${DISCORD_TOKEN}
@@ -19,7 +19,7 @@ services:
     restart: unless-stopped
 
   db:
-    image: mariadb:10.5
+    image: mariadb:latest
     container_name: mariadb_db
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}

@@ -1,8 +1,8 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { EmbedColors, createEmbed } = require('../utils/embedUtils');
-const { PermActionType } = require('../utils/constants');
-const CommandRoles = require('../model/commandRoleModel');
-const hasPermission = require('../utils/permissionUtils');
+const { EmbedColors, createEmbed } = require('../../utils/embedUtils');
+const { PermActionType } = require('../../utils/constants');
+const CommandRoles = require('../../model/commandRoleModel');
+const hasPermission = require('../../utils/permissionUtils');
 
 async function getPermissionsDescription(commandName) {
     const roles = await CommandRoles.findAll({ where: { commandName } });
