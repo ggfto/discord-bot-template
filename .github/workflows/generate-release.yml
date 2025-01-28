@@ -104,13 +104,17 @@ jobs:
             ghcr.io/${{ env.lowercase_repo }}:latest
             ghcr.io/${{ env.lowercase_repo }}:${{ github.ref_name }}
           labels: |
-            org.opencontainers.image.created=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+            org.opencontainers.image.created=${{ steps.meta.outputs.created }}
             org.opencontainers.image.authors=${{ github.repository_owner }}
             org.opencontainers.image.version=${{ github.ref_name }}
             org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.source=${{ github.event.repository.html_url }}
-            org.opencontainers.image.title=${{ github.repository }}
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.title=${{ github.event.repository.name }}
             org.opencontainers.image.description=${{ github.event.repository.description }}
+
+      - name: Verify Docker Image
+        run: |
+            docker inspect ghcr.io/${{ env.lowercase_repo }}:latest | jq '.[0].Config.Labels'
 
       - name: Get commit messages, version, and repository description
         id: get_project_information
