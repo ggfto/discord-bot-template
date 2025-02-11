@@ -9,7 +9,7 @@
     },
     "dependencies": {
         "discord-bot-template": "file:",
-        "discord.js": "^14.17.3",
+        "discord.js": "^14.18.0",
         "dotenv": "^16.4.7",
         "mysql2": "^3.12.0",
         "sequelize": "^6.37.5",
