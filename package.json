@@ -10,7 +10,7 @@
     "dependencies": {
         "discord-bot-template": "file:",
         "discord.js": "^14.21.0",
-        "dotenv": "^17.2.0",
+        "dotenv": "^17.2.1",
         "mysql2": "^3.14.2",
         "sequelize": "^6.37.7",
         "sqlite3": "^5.1.7"
