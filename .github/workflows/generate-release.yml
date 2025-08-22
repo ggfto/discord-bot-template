@@ -115,7 +115,7 @@ jobs:
         run: |
           echo "::group::Build & Push Docker"
           # Remove quebras de linha e espaços extras das tags
-          TAGS=$(echo "${{ steps.meta.outputs.tags }}" | tr -d '\n' | tr -s ' ')
+          TAGS=$(echo "${{ steps.meta.outputs.tags }}" | tr '\n' ' ')
           echo "🔹 Tags: $TAGS"
           docker buildx build --platform linux/amd64,linux/arm64 \
           -t "$TAGS" \
