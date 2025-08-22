@@ -163,7 +163,7 @@ jobs:
   create_release:
     name: 🚀 Criar Release
     runs-on: ubuntu-latest
-    needs: generate_release_notes
+    needs: [generate_release_notes, build_docker]
     steps:
       - name: Create GitHub Release
         uses: comnoco/create-release-action@v2
