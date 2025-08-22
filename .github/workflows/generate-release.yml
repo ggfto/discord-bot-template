@@ -148,6 +148,7 @@ jobs:
             echo "body=$RELEASE_NOTES" >> $GITHUB_OUTPUT
           else
             echo "body=Nenhuma nota de release disponível." >> $GITHUB_OUTPUT
+          fi
 
   create_release:
     name: 🚀 Criar Release
