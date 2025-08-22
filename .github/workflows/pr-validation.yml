@@ -64,7 +64,7 @@ jobs:
         run: |
           echo "::group::Build Docker para PR #${{ github.event.pull_request.number }}"
           docker buildx build \
-            --platform linux/amd64,linux/arm64 \
+            --platform linux/arm64 \
             -t test/${{ github.repository }}:pr-${{ github.event.pull_request.number }} \
-            --output type=docker .
+            --load .
           echo "::endgroup::"
