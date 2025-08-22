@@ -5,7 +5,8 @@
     "main": "src/bot.js",
     "scripts": {
         "dev": "nodemon src/bot.js",
-        "start": "node src/bot.js"
+        "start": "node src/bot.js",
+        "lint": "eslint ./src --ext .js,.ts"
     },
     "dependencies": {
         "discord-bot-template": "file:",
@@ -16,6 +17,9 @@
         "sqlite3": "^5.1.7"
     },
     "devDependencies": {
+        "@eslint/js": "^9.33.0",
+        "eslint": "^9.33.0",
+        "globals": "^16.3.0",
         "nodemon": "^3.1.10"
     }
 }

@@ -4,7 +4,7 @@ const { syncCommands } = require('./utils/commandSync');
 const { handleError } = require('./utils/errorHandler');
 require('dotenv').config();
 
-const { DISCORD_TOKEN, SUPPORTER_CHECK_PERIOD } = process.env;
+const { DISCORD_TOKEN } = process.env;
 
 const client = new Client({
     intents: [
@@ -35,7 +35,6 @@ client.commands = new Collection();
         // Inicializar o bot
         client.once('ready', async () => {
             console.log(`Bot iniciado como ${client.user.tag}`);
-            // startRoleCheck(client, SUPPORTER_CHECK_PERIOD); // Começa a checagem de apoio
         });
 
         client.login(DISCORD_TOKEN);

@@ -33,7 +33,7 @@ module.exports = {
             try {
                 await interaction.reply({ embeds: [embed], ephemeral: true });
             } catch (error) {
-                await interaction.editReply({ embeds: [embed], ephemeral: true });
+                console.error(error);
             }
         }
     },

@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
 const { EmbedColors, createEmbed } = require('../../utils/embedUtils');
 const { PermActionType } = require('../../utils/constants');
 const CommandRoles = require('../../model/commandRoleModel');
