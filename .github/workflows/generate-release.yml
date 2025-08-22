@@ -10,40 +10,19 @@ permissions:
   packages: write
 
 jobs:
-  lint:
-    name: 🧹 Lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: |
-          echo "::group::Instalando dependências"
-          npm ci
-          echo "::endgroup::"
-
-      - name: Run Linter
-        run: |
-          echo "::group::Executando linter"
-          npm run lint
-          echo "::endgroup::"
-
   prepare_repository:
     name: 📦 Preparar repositório
     runs-on: ubuntu-latest
-    needs: lint
     outputs:
       lowercase_repo: ${{ steps.repo_name.outputs.lowercase_repo }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
       - name: Set lowercase repository name
         id: repo_name
         run: |
           LOWERCASE_REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
           echo "lowercase_repo=$LOWERCASE_REPO" >> $GITHUB_OUTPUT
+          echo "✅ Nome do repositório em lowercase: $LOWERCASE_REPO"
 
       - name: Update package version, generate and push README
         run: |
@@ -51,13 +30,12 @@ jobs:
           CURRENT_TAG="${GITHUB_REF#refs/tags/}"
           LOWERCASE_REPO="ghcr.io/${{ steps.repo_name.outputs.lowercase_repo }}"
 
-          npm version $CURRENT_TAG --no-git-tag-version || echo "Versão já está configurada."
+          echo "🔹 Atualizando package.json para versão $CURRENT_TAG"
+          npm version $CURRENT_TAG --no-git-tag-version || echo "Versão já configurada."
 
+          echo "🔹 Gerando README.md e docker-compose.yml"
           rm -f README.md docker-compose.yml
-
-          sed -e "s|{{repository}}|${{ github.repository }}|g" \
-            README.template.md > README.md
-
+          sed -e "s|{{repository}}|${{ github.repository }}|g" README.template.md > README.md
           sed -e "s|{{lowercase_repo}}|${LOWERCASE_REPO}|g" \
               -e "s|{{repository}}|${{ github.event.repository.name }}|g" \
               docker-compose.yml.template > docker-compose.yml
@@ -70,30 +48,50 @@ jobs:
           git push origin HEAD:main
           echo "::endgroup::"
 
+  lint_and_test:
+    name: 🧹 Lint & ✅ Testes
+    runs-on: ubuntu-latest
+    needs: prepare_repository
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install dependencies
+        run: |
+          echo "::group::Instalando dependências"
+          npm install
+          echo "::endgroup::"
+      - name: Run ESLint
+        run: |
+          echo "::group::Rodando Linter"
+          npm run lint
+          echo "::endgroup::"
+      - name: Run tests
+        run: |
+          echo "::group::Rodando Testes Unitários"
+          npm test
+          echo "::endgroup::"
+
   build_docker:
     name: 🐳 Build & Push Docker
     runs-on: ubuntu-latest
-    needs: prepare_repository
+    needs: lint_and_test
     outputs:
       image_tags: ${{ steps.meta.outputs.tags }}
-      image_labels: ${{ steps.meta.outputs.labels }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Docker Metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -102,46 +100,24 @@ jobs:
           tags: |
             type=raw,value=latest
             type=raw,value=${{ github.ref_name }}
-          labels: |
-            org.opencontainers.image.title=${{ github.event.repository.name }}
-            org.opencontainers.image.description=${{ github.event.repository.description }}
-            org.opencontainers.image.url=https://github.com/${{ github.repository }}
-            org.opencontainers.image.source=https://github.com/${{ github.repository }}
-            org.opencontainers.image.version=${{ github.ref_name }}
-            org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.created=${{ steps.meta.outputs.created }}
-            org.opencontainers.image.licenses=MIT
-
-      - name: Show Docker Metadata
-        run: |
-          echo "::group::🔖 Docker Tags e Labels"
-          echo "📦 Tags geradas:"
-          echo "${{ steps.meta.outputs.tags }}"
-          echo ""
-          echo "🏷️ Labels aplicadas:"
-          echo "${{ steps.meta.outputs.labels }}"
-          echo "::endgroup::"
-
       - name: Build and Push
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+        run: |
+          echo "::group::Build & Push Docker"
+          echo "🔹 Tags: ${{ steps.meta.outputs.tags }}"
+          docker buildx build --platform linux/amd64,linux/arm64 \
+            -t ${{ steps.meta.outputs.tags }} \
+            --push .
+          echo "::endgroup::"
 
   generate_release_notes:
     name: 📝 Gerar notas de release
     runs-on: ubuntu-latest
-    needs: lint
+    needs: build_docker
     outputs:
       release_body: ${{ steps.prepare_release_body.outputs.body }}
       version: ${{ steps.get_project_information.outputs.version }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
       - name: Get commit messages
         id: get_project_information
         run: |
@@ -168,15 +144,15 @@ jobs:
         id: prepare_release_body
         run: |
           if [ -f release_body.txt ]; then
-              RELEASE_NOTES=$(head -c 1900 release_body.txt)
-              echo "body=$RELEASE_NOTES" >> $GITHUB_OUTPUT
+            RELEASE_NOTES=$(head -c 1900 release_body.txt)
+            echo "body=$RELEASE_NOTES" >> $GITHUB_OUTPUT
           else
-              echo "body=Nenhuma nota de release disponível." >> $GITHUB_OUTPUT
+            echo "body=Nenhuma nota de release disponível." >> $GITHUB_OUTPUT
 
   create_release:
     name: 🚀 Criar Release
     runs-on: ubuntu-latest
-    needs: [build_docker, generate_release_notes]
+    needs: generate_release_notes
     steps:
       - name: Create GitHub Release
         uses: comnoco/create-release-action@v2
@@ -189,15 +165,6 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Show final summary
-        run: |
-          echo "::group::📌 Release Summary"
-          echo "🏷️ Release Tag: ${{ github.ref_name }}"
-          echo "📦 Docker Tags: ${{ needs.build_docker.outputs.image_tags }}"
-          echo "🏷️ Docker Labels: ${{ needs.build_docker.outputs.image_labels }}"
-          echo "🔗 Release URL: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
-          echo "::endgroup::"
-
   post_to_discord:
     name: 🔔 Notificar no Discord
     runs-on: ubuntu-latest
@@ -205,7 +172,6 @@ jobs:
     steps:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
-
       - name: Post to Discord
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.UPDATE_DISCORD_WEBHOOK }}
@@ -219,35 +185,20 @@ jobs:
             echo "Webhook URL não definido. Pulando o envio do webhook."
             exit 0
           fi
-
           REPO_DESCRIPTION=$(curl -s https://api.github.com/repos/${{ github.repository }} | jq -r .description)
-
           EMBED_DATA='{
-              "embeds": [({
-              "author": {
-                "name": "Github - Updates",
-                "icon_url": "'"${LOGO_URL:-}"'"
-              },
-              "title": "[${{ github.event.repository.name }}] Nova versão disponível: '"${RELEASE_TAG}"'",
-              "url": "'"${RELEASE_URL}"'",
-              "description": "'"${REPO_DESCRIPTION}"'",
-              "fields": [({
-                  "name": "O que há de novo?",
-                  "value": "'"${RELEASE_BODY}"'"
-              }),
-              ({
-                  "name": "Veja todas as mudanças",
-                  "value": "[Veja todas as mudanças aqui](https://github.com/${{ github.repository }}/commits/${{ github.ref_name }})"
-              })],
-              "color": 4243543,
-              "footer": {
-                "text": "Realizado por: '"${RELEASE_AUTHOR}"'",
-                "icon_url": "'"${LOGO_URL:-}"'"
-              },
-              "timestamp": "'"$(date --utc +%Y-%m-%dT%H:%M:%SZ)"'"
-              })]
+              "embeds": [{
+                  "author": {"name": "Github - Updates","icon_url": "'"${LOGO_URL:-}"'"},
+                  "title": "[${{ github.event.repository.name }}] Nova versão disponível: '"${RELEASE_TAG}"'",
+                  "url": "'"${RELEASE_URL}"'",
+                  "description": "'"${REPO_DESCRIPTION}"'",
+                  "fields":[
+                    {"name":"O que há de novo?","value":"'"${RELEASE_BODY}"'"},
+                    {"name":"Veja todas as mudanças","value":"[Clique aqui](https://github.com/${{ github.repository }}/commits/${{ github.ref_name }})"}
+                  ],
+                  "color": 4243543,
+                  "footer":{"text":"Realizado por: '"${RELEASE_AUTHOR}"'","icon_url":"'"${LOGO_URL:-}"'"},
+                  "timestamp":"'"$(date --utc +%Y-%m-%dT%H:%M:%SZ)"'"
+              }]
           }'
-
-          curl -H "Content-Type: application/json" \
-              -d "$EMBED_DATA" \
-              $DISCORD_WEBHOOK_URL
+          curl -H "Content-Type: application/json" -d "$EMBED_DATA" $DISCORD_WEBHOOK_URL
