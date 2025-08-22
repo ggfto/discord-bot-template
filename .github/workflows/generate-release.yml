@@ -28,7 +28,8 @@ jobs:
         run: |
           echo "::group::Atualizando arquivos e commitando na main"
           CURRENT_TAG="${GITHUB_REF#refs/tags/}"
-          LOWERCASE_REPO="ghcr.io/${{ steps.repo_name.outputs.lowercase_repo }}"
+          LOWERCASE_REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          echo "lowercase_repo=$LOWERCASE_REPO" >> $GITHUB_OUTPUT
 
           echo "🔹 Atualizando package.json para versão $CURRENT_TAG"
           npm version $CURRENT_TAG --no-git-tag-version || echo "Versão já configurada."
