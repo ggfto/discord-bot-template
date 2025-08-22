@@ -20,7 +20,7 @@ jobs:
       - name: Set lowercase repository name
         id: repo_name
         run: |
-          LOWERCASE_REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          LOWERCASE_REPO=$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')
           echo "lowercase_repo=$LOWERCASE_REPO" >> $GITHUB_OUTPUT
           echo "✅ Nome do repositório em lowercase: $LOWERCASE_REPO"
 
@@ -108,10 +108,12 @@ jobs:
       - name: Build and Push
         run: |
           echo "::group::Build & Push Docker"
-          echo "🔹 Tags: ${{ steps.meta.outputs.tags }}"
+          # Remove quebras de linha e espaços extras das tags
+          TAGS=$(echo "${{ steps.meta.outputs.tags }}" | tr -d '\n' | tr -s ' ')
+          echo "🔹 Tags: $TAGS"
           docker buildx build --platform linux/amd64,linux/arm64 \
-            -t ${{ steps.meta.outputs.tags }} \
-            --push .
+          -t "$TAGS" \
+          --push .
           echo "::endgroup::"
 
   generate_release_notes:
