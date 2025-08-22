@@ -63,7 +63,8 @@ jobs:
       - name: Build Docker image (no push)
         run: |
           echo "::group::Build Docker para PR #${{ github.event.pull_request.number }}"
-          docker buildx build --platform linux/amd64,linux/arm64 \
-            -t ${{ steps.meta.outputs.tags }} \
-            --load .
+          docker buildx build \
+            --platform linux/amd64,linux/arm64 \
+            -t test/${{ github.repository }}:pr-${{ github.event.pull_request.number }} \
+            --output type=docker .
           echo "::endgroup::"
