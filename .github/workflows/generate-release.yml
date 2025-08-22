@@ -16,13 +16,16 @@ jobs:
     outputs:
       lowercase_repo: ${{ steps.repo_name.outputs.lowercase_repo }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set lowercase repository name
         id: repo_name
         run: |
           LOWERCASE_REPO=$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')
           echo "lowercase_repo=$LOWERCASE_REPO" >> $GITHUB_OUTPUT
           echo "✅ Nome do repositório em lowercase: $LOWERCASE_REPO"
+      - name: Debug lowercase repository output
+        run: |
+          echo "🔹 Valor de lowercase_repo: ${{ steps.repo_name.outputs.lowercase_repo }}"
 
       - name: Update package version, generate and push README
         run: |
@@ -61,6 +64,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Debug lowercase repository output
+        run: |
+          echo "🔹 Valor de lowercase_repo: ${{ steps.repo_name.outputs.lowercase_repo }}"
       - name: Install dependencies
         run: |
           echo "::group::Instalando dependências"
