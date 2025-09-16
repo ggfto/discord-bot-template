@@ -13,7 +13,7 @@
         "discord-bot-template": "file:",
         "discord.js": "^14.22.1",
         "dotenv": "^17.2.2",
-        "mysql2": "^3.14.4",
+        "mysql2": "^3.14.5",
         "sequelize": "^6.37.7",
         "sqlite3": "^5.1.7"
     },
