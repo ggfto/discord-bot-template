@@ -18,7 +18,7 @@
         "sqlite3": "^5.1.7"
     },
     "devDependencies": {
-        "@eslint/js": "^9.39.1",
+        "@eslint/js": "^9.39.2",
         "@jest/globals": "^30.2.0",
         "eslint": "^9.39.2",
         "globals": "^16.5.0",
